@@ -1,6 +1,6 @@
 -- MIT License
 --
--- - CPstyling.lua
+-- - CPStyling.lua
 --
 -- Copyright (c) 2021 Mingming Cui
 --
@@ -23,6 +23,19 @@
 -- SOFTWARE.
 
 local CPStyle = {}
+local rootPath = "./"
+
+local function isModuleAvailable(module)
+    res = pcall(require,module)
+    if res then return true
+    elseif not(res) then
+        return false
+    end
+end
+
+if isModuleAvailable(rootPath.."png") then
+  png = require(rootPath.."png")
+end
 
 CPStyle.theme = {
   Text                                        =           { 1.00, 0.38, 0.33, 1.00 },
@@ -197,6 +210,32 @@ local ImGuiStyleNames = {
     { ImGuiStyle = ImGuiCol.ModalWindowDimBg            , ImGuiStyleShort = "ModalWindowDimBg" },
     { ImGuiStyle = ImGuiCol.ModalWindowDarkening        , ImGuiStyleShort = "ModalWindowDarkening" },
     { ImGuiStyle = ImGuiCol.COUNT                       , ImGuiStyleShort = "COUNT" }
+  },
+  Var = {
+    { ImGuiStyle = ImGuiStyleVar.Alpha                  , ImGuiStyleShort = "Alpha" },
+    { ImGuiStyle = ImGuiStyleVar.WindowPadding          , ImGuiStyleShort = "WindowPadding" },
+    { ImGuiStyle = ImGuiStyleVar.WindowRounding         , ImGuiStyleShort = "WindowRounding" },
+    { ImGuiStyle = ImGuiStyleVar.WindowBorderSize       , ImGuiStyleShort = "WindowBorderSize" },
+    { ImGuiStyle = ImGuiStyleVar.WindowMinSize          , ImGuiStyleShort = "WindowMinSize" },
+    { ImGuiStyle = ImGuiStyleVar.WindowTitleAlign       , ImGuiStyleShort = "WindowTitleAlign" },
+    { ImGuiStyle = ImGuiStyleVar.ChildRounding          , ImGuiStyleShort = "ChildRounding" },
+    { ImGuiStyle = ImGuiStyleVar.ChildBorderSize        , ImGuiStyleShort = "ChildBorderSize" },
+    { ImGuiStyle = ImGuiStyleVar.PopupRounding          , ImGuiStyleShort = "PopupRounding" },
+    { ImGuiStyle = ImGuiStyleVar.PopupBorderSize        , ImGuiStyleShort = "PopupBorderSize" },
+    { ImGuiStyle = ImGuiStyleVar.FramePadding           , ImGuiStyleShort = "FramePadding" },
+    { ImGuiStyle = ImGuiStyleVar.FrameRounding          , ImGuiStyleShort = "FrameRounding" },
+    { ImGuiStyle = ImGuiStyleVar.FrameBorderSize        , ImGuiStyleShort = "FrameBorderSize" },
+    { ImGuiStyle = ImGuiStyleVar.ItemSpacing            , ImGuiStyleShort = "ItemSpacing" },
+    { ImGuiStyle = ImGuiStyleVar.ItemInnerSpacing       , ImGuiStyleShort = "ItemInnerSpacing" },
+    { ImGuiStyle = ImGuiStyleVar.IndentSpacing          , ImGuiStyleShort = "IndentSpacing" },
+    { ImGuiStyle = ImGuiStyleVar.ScrollbarSize          , ImGuiStyleShort = "ScrollbarSize" },
+    { ImGuiStyle = ImGuiStyleVar.ScrollbarRounding      , ImGuiStyleShort = "ScrollbarRounding" },
+    { ImGuiStyle = ImGuiStyleVar.GrabMinSize            , ImGuiStyleShort = "GrabMinSize" },
+    { ImGuiStyle = ImGuiStyleVar.GrabRounding           , ImGuiStyleShort = "GrabRounding" },
+    { ImGuiStyle = ImGuiStyleVar.TabRounding            , ImGuiStyleShort = "TabRounding" },
+    { ImGuiStyle = ImGuiStyleVar.SelectableTextAlign    , ImGuiStyleShort = "SelectableTextAlign" },
+    { ImGuiStyle = ImGuiStyleVar.ButtonTextAlign        , ImGuiStyleShort = "ButtonTextAlign" },
+    { ImGuiStyle = ImGuiStyleVar.COUNT                  , ImGuiStyleShort = "COUNT" }
   }
 }
 
@@ -205,6 +244,12 @@ local function ToImGuiStyleName(style, which)
 		for i in pairs(ImGuiStyleNames.Col) do
 			if style == ImGuiStyleNames.Col[i].ImGuiStyleShort then
 				return ImGuiStyleNames.Col[i].ImGuiStyle
+			end
+		end
+	elseif which == "Var" then
+		for i in pairs(ImGuiStyleNames.Var) do
+			if style == ImGuiStyleNames.Var[i].ImGuiStyleShort then
+				return ImGuiStyleNames.Var[i].ImGuiStyle
 			end
 		end
 	end
@@ -244,6 +289,22 @@ function CPStyle.colorEnd(count)
     ImGui.PopStyleColor()
   else
     ImGui.PopStyleColor(count)
+  end
+end
+--
+function CPStyle.styleBegin(style, var1, var2)
+	if var2 == nil then
+		ImGui.PushStyleVar(ToImGuiStyleName(style, "Var"), var1)
+	else
+		ImGui.PushStyleVar(ToImGuiStyleName(style, "Var"), var1, var2)
+	end
+end
+
+function CPStyle.styleEnd(count)
+  if count == nil then
+    ImGui.PopStyleVar()
+  else
+    ImGui.PopStyleVar(count)
   end
 end
 
@@ -297,9 +358,12 @@ function CPStyle.setThemeBegin()
 	-- CPStyle.colorBegin("NavWindowingDimBg"              , CPStyle.theme.NavWindowingDimBg)
 	-- CPStyle.colorBegin("ModalWindowDimBg"               , CPStyle.theme.ModalWindowDimBg)
 	-- CPStyle.colorBegin("ModalWindowDarkening"           , CPStyle.theme.ModalWindowDarkening)
+  CPStyle.styleBegin("WindowRounding"                 , 0)
+	CPStyle.styleBegin("ScrollbarSize"                  , 9)
 end
 
 function CPStyle.setThemeEnd()
+	CPStyle.styleEnd(2)
 	CPStyle.colorEnd(39)
 end
 
@@ -311,9 +375,11 @@ function CPStyle.setFrameThemeBegin()
 	CPStyle.colorBegin("SliderGrabActive"               , CPStyle.theme.CPSliderGrabActive)
 	CPStyle.colorBegin("Border"                         , CPStyle.theme.CPFrameBorder)
 	CPStyle.colorBegin("TextSelectedBg"                 , CPStyle.theme.CPTextSelectedBg)
+	CPStyle.styleBegin("FrameBorderSize"                , 1)
 end
 
 function CPStyle.setFrameThemeEnd()
+	CPStyle.styleEnd(1)
 	CPStyle.colorEnd(7)
 end
 
@@ -322,6 +388,7 @@ end
 function CPStyle.CPButton(label, sizex, sizey)
 	local press, hovered
 	ImGui.BeginGroup()
+	CPStyle.styleBegin("FrameBorderSize", 1)
 	CPStyle.colorBegin("Button", CPStyle.theme.CPButton)
 	CPStyle.colorBegin("ButtonHovered", CPStyle.theme.CPButtonHovered)
 	CPStyle.colorBegin("ButtonActive", CPStyle.theme.CPButtonActive)
@@ -346,6 +413,7 @@ function CPStyle.CPButton(label, sizex, sizey)
 		end
 		CPStyle.colorEnd(3)
 	end
+	CPStyle.styleEnd(1)
 	ImGui.EndGroup()
 	return press
 end
@@ -355,6 +423,7 @@ end
 function CPStyle.CPToggle(label, label_off, label_on, value, sizex, sizey)
 	local press_off, press_on, hovered
 	ImGui.BeginGroup()
+	CPStyle.styleBegin("FrameBorderSize", 1)
 	ImGui.BeginGroup()
 	if value then
 		CPStyle.colorBegin("Button", CPStyle.theme.CPToggleOffDisabled)
@@ -364,7 +433,7 @@ function CPStyle.CPToggle(label, label_off, label_on, value, sizex, sizey)
 		CPStyle.colorBegin("Border", CPStyle.theme.CPToggleOffDisabledBorder)
 		press_off = ImGui.Button(label_off.."##cp", sizex/2-1,sizey)
 		ImGui.PopStyleColor(5)
-		ImGui.SameLine(sizex/2 + 1)
+		ImGui.SameLine(sizex/2+1)
 		CPStyle.colorBegin("Button", CPStyle.theme.CPToggleOn)
 		CPStyle.colorBegin("Text", CPStyle.theme.CPToggleOnText)
 		CPStyle.colorBegin("ButtonHovered", CPStyle.theme.CPToggleOnHovered)
@@ -381,7 +450,7 @@ function CPStyle.CPToggle(label, label_off, label_on, value, sizex, sizey)
 		CPStyle.colorBegin("Border", CPStyle.theme.CPToggleOffBorder)
 		press_off = ImGui.Button(label_off.."##cp", sizex/2-1,sizey)
 		ImGui.PopStyleColor(5)
-		ImGui.SameLine(sizex/2 + 1)
+		ImGui.SameLine(sizex/2+1)
 		CPStyle.colorBegin("Button", CPStyle.theme.CPToggleOnDisabled)
 		CPStyle.colorBegin("Text", CPStyle.theme.CPToggleOnDisabledText)
 		CPStyle.colorBegin("ButtonHovered", CPStyle.theme.CPToggleOnDisabledHovered)
@@ -413,7 +482,7 @@ function CPStyle.CPToggle(label, label_off, label_on, value, sizex, sizey)
 			CPStyle.colorBegin("Text", CPStyle.theme.CPToggleOffDisabledTextHovered)
 			ImGui.Button(label_off.."##hovered", sizex/2-1,sizey)
 			ImGui.PopStyleColor(3)
-			ImGui.SameLine(sizex/2 + 1)
+			ImGui.SameLine(sizex/2+1)
 			CPStyle.colorBegin("Border", CPStyle.theme.CPToggleOnBorderHovered)
 			CPStyle.colorBegin("Button", CPStyle.theme.CPToggleOnHovered)
 			CPStyle.colorBegin("Text", CPStyle.theme.CPToggleOnTextHovered)
@@ -426,7 +495,7 @@ function CPStyle.CPToggle(label, label_off, label_on, value, sizex, sizey)
 			CPStyle.colorBegin("Text", CPStyle.theme.CPToggleOffTextHovered)
 			ImGui.Button(label_off.."##hovered", sizex/2-1,sizey)
 			ImGui.PopStyleColor(3)
-			ImGui.SameLine(sizex/2 + 1)
+			ImGui.SameLine(sizex/2+1)
 			CPStyle.colorBegin("Border", CPStyle.theme.CPToggleOnDisabledBorderHovered)
 			CPStyle.colorBegin("Button", CPStyle.theme.CPToggleOnDisabledHovered)
 			CPStyle.colorBegin("Text", CPStyle.theme.CPToggleOnDisabledTextHovered)
@@ -435,25 +504,31 @@ function CPStyle.CPToggle(label, label_off, label_on, value, sizex, sizey)
 		end
 		ImGui.EndGroup()
 	end
-	CPStyle.colorBegin("Button", CPStyle.theme.Hidden)
-	CPStyle.colorBegin("Text", CPStyle.theme.Text)
-	CPStyle.colorBegin("ButtonHovered", CPStyle.theme.Hidden)
-	CPStyle.colorBegin("ButtonActive", CPStyle.theme.Hidden)
-	ImGui.SameLine(sizex)
-	ImGui.Button(label, 0, sizey)
-	CPStyle.colorEnd(4)
+	CPStyle.styleEnd(1)
+  if label ~= nil and label ~= "" and label:match("^##") == nil then
+  	CPStyle.colorBegin("Button", CPStyle.theme.Hidden)
+  	CPStyle.colorBegin("Text", CPStyle.theme.Text)
+  	CPStyle.colorBegin("ButtonHovered", CPStyle.theme.Hidden)
+  	CPStyle.colorBegin("ButtonActive", CPStyle.theme.Hidden)
+  	CPStyle.styleBegin("FrameBorderSize", 0)
+  	CPStyle.styleBegin("ButtonTextAlign", 0, 0.5)
+  	ImGui.SameLine(sizex)
+  	ImGui.Button(label, 0, sizey)
+  	CPStyle.styleEnd(2)
+  	CPStyle.colorEnd(4)
+  end
 	ImGui.EndGroup()
 	return value, press
 end
 
 function CPStyle.CPToolTip1Begin(sizex, sizey)
+	CPStyle.styleBegin("WindowRounding", 0)
+	CPStyle.styleBegin("PopupBorderSize", 0)
+	CPStyle.styleBegin("ChildBorderSize", 1)
 	CPStyle.colorBegin("PopupBg", CPStyle.theme.Hidden)
 	CPStyle.colorBegin("ChildBg", CPStyle.theme.CPFrameBg)
-  CPStyle.colorBegin("Border", CPStyle.theme.Hidden)
 	ImGui.BeginTooltip()
-  CPStyle.colorEnd(1)
-  ImGui.BeginChild("ToolTipSide", 8, sizey, true)
-  ImGui.EndChild()
+	CPStyle.CPRect("##SideRect", 8, sizey, CPStyle.theme.CPFrameBg, CPStyle.theme.CPFrameBorder, 1, 0)
 	ImGui.SameLine(20)
 	ImGui.BeginGroup()
 	ImGui.BeginChild("ToolTipMain", sizex, sizey, true)
@@ -464,22 +539,21 @@ function CPStyle.CPToolTip1End()
 	ImGui.EndGroup()
 	ImGui.EndTooltip()
 	CPStyle.colorEnd(2)
+	CPStyle.styleEnd(3)
 end
 
 function CPStyle.CPToolTip2Begin(sizex, sizey)
+	CPStyle.styleBegin("WindowRounding", 0)
+	CPStyle.styleBegin("PopupBorderSize", 0)
+	CPStyle.styleBegin("ChildBorderSize", 1)
 	CPStyle.colorBegin("PopupBg", CPStyle.theme.Hidden)
-  CPStyle.colorBegin("Border", CPStyle.theme.Hidden)
+	CPStyle.colorBegin("ChildBg", CPStyle.theme.CPToolTip2Bg)
+	CPStyle.colorBegin("Border", CPStyle.theme.CPToolTip2Border)
+	CPStyle.colorBegin("Separator", CPStyle.theme.CPToolTip2Separator)
 	ImGui.BeginTooltip()
-  CPStyle.colorEnd(1)
-  CPStyle.colorBegin("Border", CPStyle.theme.CPToolTip2Border)
-  CPStyle.colorBegin("Separator", CPStyle.theme.CPToolTip2Separator)
-  CPStyle.colorBegin("ChildBg", CPStyle.theme.CPToolTip2SideBg)
-  ImGui.BeginChild("ToolTip2Side", 8, sizey, true)
-  ImGui.EndChild()
-  CPStyle.colorEnd(1)
+	CPStyle.CPRect("##SideRect", 8, sizey, CPStyle.theme.CPToolTip2SideBg, CPStyle.theme.CPToolTip2Border, 1, 0)
 	ImGui.SameLine(16)
 	ImGui.BeginGroup()
-  CPStyle.colorBegin("ChildBg", CPStyle.theme.CPToolTip2Bg)
 	ImGui.BeginChild("ToolTip2Main", sizex, sizey, true)
 end
 
@@ -488,6 +562,7 @@ function CPStyle.CPToolTip2End()
 	ImGui.EndGroup()
 	ImGui.EndTooltip()
 	CPStyle.colorEnd(4)
+	CPStyle.styleEnd(3)
 end
 
 function CPStyle.CPRect(label, sizex, sizey, color, border_color, border_size, border_rounding, textalignx, textaligny)
@@ -500,10 +575,59 @@ function CPStyle.CPRect(label, sizex, sizey, color, border_color, border_size, b
 	CPStyle.colorBegin("Button", color)
 	CPStyle.colorBegin("ButtonActive", color)
 	CPStyle.colorBegin("ButtonHovered", color)
+	CPStyle.styleBegin("FrameBorderSize", border_size)
+	CPStyle.styleBegin("FrameRounding", border_rounding)
+	CPStyle.styleBegin("ButtonTextAlign", textalignx, textaligny)
 	local press = ImGui.Button(label, sizex, sizey)
+	CPStyle.styleEnd(3)
 	CPStyle.colorEnd(4)
 	return press
 end
 
+function CPStyle.CPRect2(label, sizex, sizey, color)
+	CPStyle.colorBegin("ChildBg", color)
+	ImGui.BeginChild(label, sizex, sizey)
+  ImGui.EndChild()
+	CPStyle.colorEnd(1)
+end
+
+function CPStyle.CPDraw(name, image, scale)
+  ImGui.BeginGroup()
+  local basex, basey = ImGui.GetCursorPos()
+  local pixelx = 1
+  local pixely = 1
+  local cursorx = basex
+  local cursory = basey
+  local totalPixel = image.width*image.height
+  for i = 1, totalPixel do
+    ImGui.SetCursorPos(cursorx, cursory)
+    if image.pixels[pixely][pixelx][4] ~= 0 then
+      CPStyle.CPRect2("##"..name..i, scale, scale, image.pixels[pixely][pixelx])
+    end
+    pixelx = pixelx + 1
+    if pixelx > image.width then pixelx = 1 pixely = pixely + 1 end
+    cursorx = basex+(pixelx-1)*scale
+    cursory = basey+(pixely-1)*scale
+  end
+  ImGui.EndGroup()
+end
+
+function CPStyle.loadPNG(imagepath)
+  local imgraw = png(imagepath)
+  local img = {}
+  local x = {}
+  local y = {}
+  img.width = imgraw.width
+  img.height = imgraw.height
+  for i in pairs(imgraw.pixels) do
+    for t in pairs(imgraw.pixels[i]) do
+      y[t] = { imgraw.pixels[i][t].R/255, imgraw.pixels[i][t].G/255, imgraw.pixels[i][t].B/255, imgraw.pixels[i][t].A/255 }
+    end
+    x[i] = y
+    y = {}
+  end
+  img.pixels = x
+  return img
+end
 
 return CPStyle
