@@ -343,17 +343,20 @@ registerForEvent("onDraw", function()
 
     if (gameRunning) then
         CPS.setThemeBegin()
-        ImGui.Begin("CyberTetris v.01", true, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.AlwaysAutoResize)
+        ImGui.Begin("CyberTetris v.01", true, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoTitleBar)
         local tetrisWindowSize = {}
+        local size = 20
         tetrisWindowSize.x, tetrisWindowSize.y = ImGui.GetWindowSize()
         ImGui.SetWindowPos((wWidth / 2) - tetrisWindowSize.x / 2, (wHeight / 2) - tetrisWindowSize.y / 2)
-        ImGui.BeginChild("Score", 0, 30)
-        ImGui.SetWindowFontScale(1.2)
+        ImGui.Text("CyberTetris v.01")
+        ImGui.Spacing()
+        ImGui.BeginChild("Score", size*10, 20)
+        ImGui.SetWindowFontScale(1.3)
         s = string.format ("Score: %i", brokenLines * 10)
         ImGui.Text(s)
         ImGui.EndChild()
 
-        drawField(20)
+        drawField(size)
 
         ImGui.End()
         CPS.setThemeEnd()
