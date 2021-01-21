@@ -7,12 +7,11 @@ local InteractKey = 0x46
 -- Key Settings go here
 
 registerForEvent("onInit", function()
-
     CPS = require "plugins.cyber_engine_tweaks.mods.arcade.CPStyling"
     theme = CPS.theme
     color = CPS.color
     wWidth, wHeight = GetDisplayResolution()
-    -- player = Game.GetPlayer() 
+    -- player = Game.GetPlayer()
     looksAtArcade = false
     currentMachine = nil
     minDistance = 1.5
@@ -23,12 +22,11 @@ registerForEvent("onInit", function()
 
     modOn = false
 
-    tetrisWindowSize = {x = 250, y = 435}
     tetrisField = {}
     activeFigure = {}
     activeFigureIndex = {}
     fLength = {1, 3, 3, 3, 0, 3, 3}
-    figures = { [0] = {[0] = {1, 11, 21, 31, color.cyan, {x1_border = 0, x2_border = 9}}, [1] = {1, 2, 3, 4, color.cyan, {x1_border = 0, x2_border = 6}}}, 
+    figures = { [0] = {[0] = {1, 11, 21, 31, color.cyan, {x1_border = 0, x2_border = 9}}, [1] = {1, 2, 3, 4, color.cyan, {x1_border = 0, x2_border = 6}}},
                 [1] = {[0] = {1, 2, 11, 21, color.blue, {x1_border = 0, x2_border = 8}}, [1] = {10, 11, 12, 22, color.blue, {x1_border = 1, x2_border = 8}}, [2] = {1, 11, 21, 20, color.blue, {x1_border = 1, x2_border = 9}}, [3] = {0, 10, 11, 12, color.blue, {x1_border = 1, x2_border = 8}}},
                 [2] = {[0] = {1, 2, 12, 22, color.orange, {x1_border = 0, x2_border = 8}}, [1] = {11, 12, 13, 3, color.orange, {x1_border = 0, x2_border = 7}}, [2] = {2, 12, 22, 23, color.orange, {x1_border = -1, x2_border = 7}}, [3] = {11, 12, 13, 21, color.orange, {x1_border = 0, x2_border = 7}}},
                 [3] = {[0] = {1, 10, 11, 12, color.magenta, {x1_border = 1, x2_border = 8}}, [1] = {1, 11, 12, 21, color.magenta, {x1_border = 0, x2_border = 8}}, [2] = {10, 11, 12, 21, color.magenta, {x1_border = 1, x2_border = 8}}, [3] = {1, 10, 11, 21, color.magenta, {x1_border = 1, x2_border = 9}}},
@@ -40,14 +38,14 @@ registerForEvent("onInit", function()
     print("[ArcadeTetris WIP] Mod is now loaded, sorry for the incoming error spam")
 
     function distanceVectors(v1, v2)
-        dV = (v1.x - v2.x)^2 + (v1.y - v2.y)^2 + (v1.z - v2.z)^2 
+        dV = (v1.x - v2.x)^2 + (v1.y - v2.y)^2 + (v1.z - v2.z)^2
         return math.sqrt(dV)
     end
 
     function isLookingAtArcade(range)
         currentObj = Game.GetTargetingSystem():GetLookAtObject(player, false, false)
         if(currentObj:IsExactlyA("ArcadeMachine") and distanceVectors(player:GetWorldPosition(), currentObj:GetWorldPosition()) < range) then
-            return true 
+            return true
         else
             return false
         end
@@ -81,17 +79,25 @@ registerForEvent("onInit", function()
     end
 
     function drawField(size)
+        CPS.colorBegin("ChildBg", color.black)
+        ImGui.BeginChild("##background", (size+1)*10, (size+1)*20)
+        local originX, originY = ImGui.GetCursorPos()
+        local y = originY
+        local x = originX
         for i = 0, 19 do
+            y = originY + i * size + i
             for j = 1, 10 do
-                ImGui.SameLine()
+                x = originX + (j-1) * size + j
+                ImGui.SetCursorPos(x, y)
                 if has_value(activeFigure, i * 10 + j) then
-                    CPS.CPRect("##field", size, size, activeFigure[5], { 1, 0, 0 ,1 }, 1, 0) 
-                else
-                    CPS.CPRect("##field", size, size, tetrisField[i * 10 + j], { 1, 0, 0 ,1 }, 1, 0) 
+                    CPS.CPRect2("##field"..i..j, size, size, activeFigure[5])
+                elseif tetrisField[i * 10 + j] ~= color.grey then
+                    CPS.CPRect2("##field"..i..j, size, size, tetrisField[i * 10 + j])
                 end
             end
-            ImGui.Spacing()
-        end    
+        end
+        ImGui.EndChild()
+        CPS.colorEnd(1)
     end
 
     function has_value (tab, val)
@@ -149,7 +155,7 @@ registerForEvent("onInit", function()
 
                 if tetrisField[x + y * 10] ~= color.grey then
                     line = line + 1
-                end 
+                end
 
             end
 
@@ -175,7 +181,7 @@ registerForEvent("onInit", function()
 
     function rotate()
         i1, i2 = activeFigureIndex.p1, activeFigureIndex.p2
-        newFigIndex2 = (activeFigureIndex.p2 + 1) % (fLength[activeFigureIndex.p1 + 1] + 1) 
+        newFigIndex2 = (activeFigureIndex.p2 + 1) % (fLength[activeFigureIndex.p1 + 1] + 1)
         spawnFigure(activeFigure[7].x_pos, activeFigure[7].y_pos, false, activeFigureIndex.p1, newFigIndex2)
         if (intersects()) or (activeFigure[7].x_pos < activeFigure[6].x1_border) or (activeFigure[7].x_pos > activeFigure[6].x2_border)then
             spawnFigure(activeFigure[7].x_pos, activeFigure[7].y_pos, false, i1, i2)
@@ -205,11 +211,11 @@ registerForEvent("onInit", function()
         if (direction == "left") then
             dir = -1
         end
-        moveActiveFigureBy(dir) 
+        moveActiveFigureBy(dir)
         activeFigure[7].x_pos = activeFigure[7].x_pos + dir
         if intersects() or (activeFigure[7].x_pos < activeFigure[6].x1_border) or (activeFigure[7].x_pos > activeFigure[6].x2_border) then
              moveActiveFigureBy(-dir)
-             activeFigure[7].x_pos = activeFigure[7].x_pos - dir 
+             activeFigure[7].x_pos = activeFigure[7].x_pos - dir
         end
     end
 
@@ -300,7 +306,7 @@ registerForEvent("onUpdate", function(deltaTime)
         end
     end
 
-    
+
 
     if (not looksAtArcade and gameRunning) then
         gameRunning = false
@@ -328,25 +334,45 @@ registerForEvent("onDraw", function()
     if (looksAtArcade and not gameRunning) then
 
         CPS.setThemeBegin()
-        ImGui.Begin("Arcade Machine", true, ImGuiWindowFlags.NoResize)
-        ImGui.SetWindowPos((wWidth / 2) - 75, wHeight / 1.1)
-        ImGui.Text("Start Game [10 E$]") 
+        CPS.styleBegin("WindowBorderSize", 0)
+        CPS.colorBegin("WindowBg", {0,0,0,0.2})
+        ImGui.Begin("Arcade Machine", true, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoTitleBar)
+        ImGui.SetWindowFontScale(1.5)
+        ImGui.SetWindowPos((wWidth / 2) - 100, wHeight * 0.66)
+        ImGui.Text("Arcade Machine")
+        CPS.CPRect2("PopupSeparator", 230, 1, theme.Text)
+        ImGui.Dummy(0,8)
+        CPS.colorBegin("Text", theme.CPButtonText)
+        CPS.CPRect("F", 28, 28, theme.Hidden, theme.CPButtonText, 1, 3)
+        ImGui.SameLine()
+        ImGui.Text("Start Game")
+        ImGui.SameLine()
+        ImGui.TextColored(1, 0.76, 0.23, 1, "[10 E$]")
+        CPS.colorEnd()
         ImGui.End()
-        CPS.setThemeEnd()  
-    end  
+        CPS.colorEnd(1)
+        CPS.styleEnd(1)
+        CPS.setThemeEnd()
+    end
 
     if (gameRunning) then
         CPS.setThemeBegin()
-        ImGui.Begin("CyberTetris v.01", true, ImGuiWindowFlags.NoResize)
-        ImGui.SetWindowSize(tetrisWindowSize.x, tetrisWindowSize.y)
+        ImGui.Begin("CyberTetris v.01", true, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoTitleBar)
+        local tetrisWindowSize = {}
+        local size = 20
+        tetrisWindowSize.x, tetrisWindowSize.y = ImGui.GetWindowSize()
         ImGui.SetWindowPos((wWidth / 2) - tetrisWindowSize.x / 2, (wHeight / 2) - tetrisWindowSize.y / 2)
+        ImGui.Text("CyberTetris v.01")
+        ImGui.Spacing()
+        ImGui.BeginChild("Score", size*10, 20)
+        ImGui.SetWindowFontScale(1.3)
         s = string.format ("Score: %i", brokenLines * 10)
         ImGui.Text(s)
-        ImGui.Spacing()
+        ImGui.EndChild()
 
-        drawField(15)
+        drawField(size)
 
         ImGui.End()
-        CPS.setThemeEnd()  
+        CPS.setThemeEnd()
     end
 end)
