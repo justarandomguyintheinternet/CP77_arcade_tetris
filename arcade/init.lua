@@ -79,6 +79,8 @@ registerForEvent("onInit", function()
     end
 
     function drawField(size)
+        CPS.colorBegin("ChildBg", color.black)
+        ImGui.BeginChild("##background", (size+1)*10, (size+1)*20)
         local originX, originY = ImGui.GetCursorPos()
         local y = originY
         local x = originX
@@ -88,12 +90,14 @@ registerForEvent("onInit", function()
                 x = originX + (j-1) * size + j
                 ImGui.SetCursorPos(x, y)
                 if has_value(activeFigure, i * 10 + j) then
-                    CPS.CPRect("##field"..i..j, size, size, activeFigure[5])
-                else
-                    CPS.CPRect("##field"..i..j, size, size, tetrisField[i * 10 + j])
+                    CPS.CPRect2("##field"..i..j, size, size, activeFigure[5])
+                elseif tetrisField[i * 10 + j] ~= color.grey then
+                    CPS.CPRect2("##field"..i..j, size, size, tetrisField[i * 10 + j])
                 end
             end
         end
+        ImGui.EndChild()
+        CPS.colorEnd(1)
     end
 
     function has_value (tab, val)
