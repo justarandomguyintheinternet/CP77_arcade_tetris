@@ -23,7 +23,7 @@
 -- SOFTWARE.
 
 local CPStyle = {}
-local rootPath = "./"
+local rootPath = "./plugins/cyber_engine_tweaks/mods/demo/"
 
 local function isModuleAvailable(module)
     res = pcall(require,module)
@@ -33,8 +33,8 @@ local function isModuleAvailable(module)
     end
 end
 
-if isModuleAvailable(rootPath.."png") then
-  png = require(rootPath.."png")
+if isModuleAvailable(rootPath.."png-lua/png") then
+  png = require(rootPath.."png-lua/png")
 end
 
 CPStyle.theme = {
@@ -628,6 +628,21 @@ function CPStyle.loadPNG(imagepath)
   end
   img.pixels = x
   return img
+end
+
+function CPStyle.fileExists(filename)
+   local f=io.open(filename,"r")
+   if (f~=nil) then io.close(f) return true else return false end
+end
+
+function CPStyle.getCWD(mod_name)
+  if CPStyle.fileExists("./bin/x64/plugins/cyber_engine_tweaks/mods/"..mod_name.."/init.lua") then
+    return "./bin/x64/plugins/cyber_engine_tweaks/mods/"..mod_name.."/"
+  elseif CPStyle.fileExists("./plugins/cyber_engine_tweaks/mods/"..mod_name.."/init.lua") then
+    return "./plugins/cyber_engine_tweaks/mods/"..mod_name.."/"
+  elseif  CPStyle.fileExists("./"..mod_name.."/init.lua") then
+    return "./"..mod_name.."/"
+  end
 end
 
 return CPStyle
