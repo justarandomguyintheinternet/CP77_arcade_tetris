@@ -1,17 +1,15 @@
--- -- Key Settings go here
-local LeftKey = 0x25
-local RightKey = 0x27
-local DownKey = 0x28
-local RotateKey = 0x26
-local InteractKey = 0x46
--- Key Settings go here
-
 registerForEvent("onInit", function()
-    CPS = require "plugins.cyber_engine_tweaks.mods.arcade.CPStyling"
-    theme = CPS.theme
+    rootPath = "./plugins/cyber_engine_tweaks/mods/arcade/"
+    package.loaded[rootPath.."CPStyling"] = nil
+ 	CPS = require (rootPath.."CPStyling")
+    print("CPStyling.lua loaded")
+ 	theme = CPS.theme
     color = CPS.color
+	print("Theme Loaded")
+    rootPathIO = CPS.getCWD("arcade") -- thx ming for this neat function
     wWidth, wHeight = GetDisplayResolution()
-    -- player = Game.GetPlayer()
+
+    player = Game.GetPlayer()
     looksAtArcade = false
     currentMachine = nil
     minDistance = 1.5
@@ -19,6 +17,7 @@ registerForEvent("onInit", function()
     timer = 0
     timer2 = 0
     brokenLines = 0
+    highscore = 0
 
     modOn = false
 
@@ -70,7 +69,7 @@ registerForEvent("onInit", function()
         Game.GetTeleportationFacility():Teleport(player, tpTo , EulerAngles.new(0,0,obj:GetWorldYaw() - 180))
     end
 
--- All Tetris functions, might break up into modules later
+-- All Tetris functions, might break up into modules later, when require is fixed
 
     function createField()
         for i = 1, 200 do
@@ -162,6 +161,9 @@ registerForEvent("onInit", function()
             if line == 10 then
                 moveDownAbove(y)
                 brokenLines = brokenLines + 1
+                if brokenLines * 10 > highscore then
+                    highscore = brokenLines * 10
+                end
             end
         end
     end
@@ -243,70 +245,14 @@ registerForEvent("onInit", function()
 end)
 
 registerForEvent("onUpdate", function(deltaTime)
-
-    timer = timer + deltaTime
-    if (timer > 0.75) then
-        timer = timer - 0.75
-        if gameRunning then
-            goDown()
-        end
-    end
-
-    player = Game.GetPlayer() -- i am sorry for doing this but its the only way the game wont crash pls help me i just want it to work so bad
-
-    local interact = GetAsyncKeyState(InteractKey)
-    if interact ~= space_state then
-        space_state = interact
-        if space_state then
-            if (looksAtArcade and not gameRunning) then --if exist player doesnt work
-                spendMoney(10)
-                startGame()
-                gameRunning = true
-            end
-        end
-    end
-
-    local down = GetAsyncKeyState(DownKey)
-    if down ~= space_state then
-        space_state = down
-        if space_state then
-            if (gameRunning) then
+    if Game.GetPlayer() ~= nil then
+        timer = timer + deltaTime
+        if (timer > 0.75) then
+            timer = timer - 0.75
+            if gameRunning then
                 goDown()
             end
         end
-    end
-
-     local right = GetAsyncKeyState(RightKey)
-    if right ~= space_state then
-        space_state = right
-        if space_state then
-            if (gameRunning) then
-                goSide("right")
-            end
-        end
-    end
-
-    local left = GetAsyncKeyState(LeftKey)
-    if left ~= space_state then
-        space_state = left
-        if space_state then
-            if (gameRunning) then
-                goSide("left")
-            end
-        end
-    end
-
-    local rot = GetAsyncKeyState(RotateKey)
-    if rot ~= space_state then
-        space_state = rot
-        if space_state then
-            if (gameRunning) then
-                rotate()
-            end
-        end
-    end
-
-
 
     if (not looksAtArcade and gameRunning) then
         gameRunning = false
@@ -314,22 +260,14 @@ registerForEvent("onUpdate", function(deltaTime)
     end
 
     looksAtArcade = isLookingAtArcade(minDistance)
-
-    local on = GetAsyncKeyState(ActivationKey) -- quick and dirty fix until the whole game.getplayer() stuff is fixed
-    if on ~= space_state then
-        space_state = on
-        if space_state and not modOn then
-            player = Game.GetPlayer()
-            modOn = true
-            print(modOn)
-        end
     end
-
 end)
 
 registerForEvent("onDraw", function()
 
-    Game.GetTargetingSystem():GetLookAtObject(player, false, false):GetClassName()--for some reason this fixes stuff lmao
+    if Game.GetPlayer() ~= nil then
+        Game.GetTargetingSystem():GetLookAtObject(player, false, false):GetClassName()--for some reason this fixes stuff lmao
+    end
 
     if (looksAtArcade and not gameRunning) then
 
@@ -365,14 +303,49 @@ registerForEvent("onDraw", function()
         ImGui.Text("CyberTetris v.01")
         ImGui.Spacing()
         ImGui.BeginChild("Score", size*10, 20)
-        ImGui.SetWindowFontScale(1.3)
+        ImGui.SetWindowFontScale(1.1)
         s = string.format ("Score: %i", brokenLines * 10)
         ImGui.Text(s)
+        ImGui.SameLine(87)
+        h = string.format ("Highscore: %i", highscore)
+        ImGui.Text(h)
         ImGui.EndChild()
 
         drawField(size)
 
         ImGui.End()
         CPS.setThemeEnd()
+    end
+end)
+
+registerHotkey("arcadeInteract", "Arcade interact Key", function()
+	if (looksAtArcade and not gameRunning) then
+        spendMoney(10)
+        startGame()
+        gameRunning = true
+     end
+end)
+
+registerHotkey("arcadeTetrisDown", "Tetris down key", function()
+	if (gameRunning) then
+        goDown()
+    end
+end)
+
+registerHotkey("arcadeTetrisRight", "Tetris right key", function()
+	if (gameRunning) then
+        goSide("right")
+    end
+end)
+
+registerHotkey("arcadeTetrisLeft", "Tetris left key", function()
+	if (gameRunning) then
+        goSide("left")
+    end
+end)
+
+registerHotkey("arcadeTetrisRotate", "Tetris rotate key", function()
+	if (gameRunning) then
+        rotate()
     end
 end)
