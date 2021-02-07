@@ -76,20 +76,23 @@ registerForEvent("onInit", function()
     end
 
     function drawField(size)
+        local wposX, wposY = ImGui.GetWindowPos()
+        local cursorX, cursorY = ImGui.GetCursorPos()
         CPS.colorBegin("ChildBg", color.black)
         ImGui.BeginChild("##background", (size+1)*10, (size+1)*20)
-        local originX, originY = ImGui.GetCursorPos()
+        local drawlist = ImGui.GetWindowDrawList()
+        local originX = wposX + cursorX
+        local originY = wposY + cursorY
         local y = originY
         local x = originX
         for i = 0, 19 do
             y = originY + i * size + i
             for j = 1, 10 do
                 x = originX + (j-1) * size + j
-                ImGui.SetCursorPos(x, y)
                 if has_value(activeFigure, i * 10 + j) then
-                    CPS.CPRect2("##field"..i..j, size, size, activeFigure[5])
+                    ImGui.ImDrawListAddRectFilled(drawlist, x, y, x+size, y+size, ImGui.GetColorU32(table.unpack(activeFigure[5])))
                 elseif tetrisField[i * 10 + j] ~= color.grey then
-                    CPS.CPRect2("##field"..i..j, size, size, tetrisField[i * 10 + j])
+                    ImGui.ImDrawListAddRectFilled(drawlist, x, y, x+size, y+size, ImGui.GetColorU32(table.unpack(tetrisField[i * 10 + j])))
                 end
             end
         end
