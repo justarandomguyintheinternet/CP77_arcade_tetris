@@ -1,4 +1,11 @@
 registerForEvent("onInit", function()
+  -- Key Settings (lower case)
+    LeftKey = "4"
+    RightKey = "6"
+    DownKey = "2"
+    RotateKey = "8"
+    InteractKey = "f"
+
  	  CPS = require ("CPStyling")
     print("CPStyling.lua loaded")
  	  theme = CPS.theme
@@ -263,9 +270,32 @@ registerForEvent("onUpdate", function(deltaTime)
     end
 
     looksAtArcade = isLookingAtArcade(minDistance)
+    local keypress = CPS.Input:GetKeyPress()
+    if gameRunning then
+      CPS.Input:Enable(true)
+      if keypress == RotateKey then
+        rotate()
+      elseif keypress == DownKey then
+        goDown()
+      elseif keypress == LeftKey then
+        goSide("left")
+      elseif keypress == RightKey then
+        goSide("right")
+      end
+    elseif looksAtArcade and (not gameRunning) then
+      CPS.Input:Enable(true)
+      if keypress == InteractKey then
+        spendMoney(10)
+        startGame()
+        gameRunning = true
+      end
+    else
+      CPS.Input:Enable(false)
+    end
 end)
 
 registerForEvent("onDraw", function()
+    CPS.Input:Register()
 
     if (looksAtArcade and not gameRunning) then
 
@@ -279,7 +309,7 @@ registerForEvent("onDraw", function()
         CPS.CPRect2("PopupSeparator", 230, 1, theme.Text)
         ImGui.Dummy(0,8)
         CPS.colorBegin("Text", theme.CPButtonText)
-        CPS.CPRect("F", 28, 28, theme.Hidden, theme.CPButtonText, 1, 3)
+        CPS.CPRect(InteractKey:upper(), 28, 28, theme.Hidden, theme.CPButtonText, 1, 3)
         ImGui.SameLine()
         ImGui.Text("Start Game")
         ImGui.SameLine()
@@ -313,37 +343,5 @@ registerForEvent("onDraw", function()
 
         ImGui.End()
         CPS.setThemeEnd()
-    end
-end)
-
-registerHotkey("arcadeInteract", "Arcade interact Key", function()
-	if (looksAtArcade and not gameRunning) then
-        spendMoney(10)
-        startGame()
-        gameRunning = true
-     end
-end)
-
-registerHotkey("arcadeTetrisDown", "Tetris down key", function()
-	if (gameRunning) then
-        goDown()
-    end
-end)
-
-registerHotkey("arcadeTetrisRight", "Tetris right key", function()
-	if (gameRunning) then
-        goSide("right")
-    end
-end)
-
-registerHotkey("arcadeTetrisLeft", "Tetris left key", function()
-	if (gameRunning) then
-        goSide("left")
-    end
-end)
-
-registerHotkey("arcadeTetrisRotate", "Tetris rotate key", function()
-	if (gameRunning) then
-        rotate()
     end
 end)
