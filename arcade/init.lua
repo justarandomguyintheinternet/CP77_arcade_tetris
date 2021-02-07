@@ -1,15 +1,11 @@
 registerForEvent("onInit", function()
-    rootPath = "./plugins/cyber_engine_tweaks/mods/arcade/"
-    package.loaded[rootPath.."CPStyling"] = nil
- 	CPS = require (rootPath.."CPStyling")
+ 	  CPS = require ("CPStyling")
     print("CPStyling.lua loaded")
- 	theme = CPS.theme
+ 	  theme = CPS.theme
     color = CPS.color
-	print("Theme Loaded")
-    rootPathIO = CPS.getCWD("arcade") -- thx ming for this neat function
+	  print("Theme Loaded")
     wWidth, wHeight = GetDisplayResolution()
 
-    player = Game.GetPlayer()
     looksAtArcade = false
     currentMachine = nil
     minDistance = 1.5
@@ -43,10 +39,12 @@ registerForEvent("onInit", function()
 
     function isLookingAtArcade(range)
         currentObj = Game.GetTargetingSystem():GetLookAtObject(player, false, false)
-        if(currentObj:IsExactlyA("ArcadeMachine") and distanceVectors(player:GetWorldPosition(), currentObj:GetWorldPosition()) < range) then
-            return true
-        else
-            return false
+        if currentObj ~= nil then
+          if (currentObj:IsExactlyA("ArcadeMachine") and distanceVectors(player:GetWorldPosition(), currentObj:GetWorldPosition()) < range) then
+              return true
+          else
+              return false
+          end
         end
     end
 
@@ -245,14 +243,16 @@ registerForEvent("onInit", function()
 end)
 
 registerForEvent("onUpdate", function(deltaTime)
-    if Game.GetPlayer() ~= nil then
-        timer = timer + deltaTime
-        if (timer > 0.75) then
-            timer = timer - 0.75
-            if gameRunning then
-                goDown()
-            end
+
+    timer = timer + deltaTime
+    if (timer > 0.75) then
+        timer = timer - 0.75
+        if gameRunning then
+            goDown()
         end
+    end
+
+    player = Game.GetPlayer()
 
     if (not looksAtArcade and gameRunning) then
         gameRunning = false
@@ -260,14 +260,9 @@ registerForEvent("onUpdate", function(deltaTime)
     end
 
     looksAtArcade = isLookingAtArcade(minDistance)
-    end
 end)
 
 registerForEvent("onDraw", function()
-
-    if Game.GetPlayer() ~= nil then
-        Game.GetTargetingSystem():GetLookAtObject(player, false, false):GetClassName()--for some reason this fixes stuff lmao
-    end
 
     if (looksAtArcade and not gameRunning) then
 
