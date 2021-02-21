@@ -5,6 +5,4 @@ This mod uses https://github.com/Nats-ji/CPStyling.lua, all credits for this awe
 
 Download it on Nexus Mods: https://www.nexusmods.com/cyberpunk2077/mods/1118/
 
-Known issues:
-- Prints lots of errors when loading up
 
