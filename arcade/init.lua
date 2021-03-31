@@ -1,16 +1,7 @@
 registerForEvent("onInit", function()
-  -- Key Settings (lower case)
-    LeftKey = "4"
-    RightKey = "6"
-    DownKey = "2"
-    RotateKey = "8"
-    InteractKey = "f"
-
- 	  CPS = require ("CPStyling")
-    print("CPStyling.lua loaded")
- 	  theme = CPS.theme
+ 	CPS = require ("CPStyling")
+ 	theme = CPS.theme
     color = CPS.color
-	  print("Theme Loaded")
     wWidth, wHeight = GetDisplayResolution()
 
     looksAtArcade = false
@@ -19,8 +10,18 @@ registerForEvent("onInit", function()
     gameRunning = false
     timer = 0
     timer2 = 0
+
+    timerDelay = 0.75
+    timerMin = 0.15
+    timerStepPerLine = 0.05
+
     brokenLines = 0
     highscore = 0
+
+    downKey = false
+    rightKey = false
+    leftKey = false
+    rotateKey = false
 
     modOn = false
 
@@ -37,15 +38,13 @@ registerForEvent("onInit", function()
                 [6] = {[0] = {0, 1, 11, 12, color.red, {x1_border = 1, x2_border = 8}}, [1] = {2, 11, 12, 21, color.red, {x1_border = 0, x2_border = 8}}, [2] = {10, 11, 21, 22, color.red, {x1_border = 1, x2_border = 8}}, [3] = {1, 10, 11, 20, color.red, {x1_border = 1, x2_border = 9}}}
             }
 
-    print("[ArcadeTetris WIP] Mod is now loaded, sorry for the incoming error spam")
-
     function distanceVectors(v1, v2)
         dV = (v1.x - v2.x)^2 + (v1.y - v2.y)^2 + (v1.z - v2.z)^2
         return math.sqrt(dV)
     end
 
     function isLookingAtArcade(range)
-        currentObj = Game.GetTargetingSystem():GetLookAtObject(player, false, false)
+        currentObj = Game.GetTargetingSystem():GetLookAtObject(player, true, false)
         if currentObj ~= nil then
           if (currentObj:IsExactlyA("ArcadeMachine") and distanceVectors(player:GetWorldPosition(), currentObj:GetWorldPosition()) < range) then
               return true
@@ -168,6 +167,7 @@ registerForEvent("onInit", function()
 
             if line == 10 then
                 moveDownAbove(y)
+                timerDelay = timerDelay - timerStepPerLine
                 brokenLines = brokenLines + 1
                 if brokenLines * 10 > highscore then
                     highscore = brokenLines * 10
@@ -242,11 +242,11 @@ registerForEvent("onInit", function()
         spawnFigure(4, 0, true)
     end
 
-    function stopGame()
-        reset()
+    function stopGame()      
         gameRunning = false
-        Game.AddToInventory("Items.money",brokenLines)
+        Game.AddToInventory("Items.money",brokenLines*5)
         currentMachine:TurnOnDevice()
+        reset()
     end
 
 -- End Tetris functions
@@ -254,12 +254,28 @@ end)
 
 registerForEvent("onUpdate", function(deltaTime)
 
+	timerDelay = math.max(timerMin, timerDelay)
+
     timer = timer + deltaTime
-    if (timer > 0.75) then
-        timer = timer - 0.75
+    if (timer > timerDelay) then
+        timer = timer - timerDelay
         if gameRunning then
             goDown()
         end
+    end
+
+    timer2 = timer2 + deltaTime
+    if (timer2 > 0.08) then
+        timer2 = timer2 - 0.08
+        if gameRunning then
+	    	if downKey then
+	    		goDown()
+	    	elseif rightKey then
+	    		goSide("right")
+	    	elseif leftKey then
+	    		goSide("left")
+			end
+	    end
     end
 
     player = Game.GetPlayer()
@@ -270,46 +286,63 @@ registerForEvent("onUpdate", function(deltaTime)
     end
 
     looksAtArcade = isLookingAtArcade(minDistance)
-    local keypress = CPS.Input:GetKeyPress()
-    if gameRunning then
-      CPS.Input:Enable(true)
-      if keypress == RotateKey then
-        rotate()
-      elseif keypress == DownKey then
-        goDown()
-      elseif keypress == LeftKey then
-        goSide("left")
-      elseif keypress == RightKey then
-        goSide("right")
-      end
-    elseif looksAtArcade and (not gameRunning) then
-      CPS.Input:Enable(true)
-      if keypress == InteractKey then
-        spendMoney(10)
-        startGame()
-        gameRunning = true
-      end
-    else
-      CPS.Input:Enable(false)
+
+end)
+
+registerInput('arcade_right', 'Arcade right', function(isDown)
+	if (isDown) then
+    	rightKey = true
+  	else
+  		rightKey = false
     end
 end)
 
+registerInput('arcade_left', 'Arcade left', function(isDown)
+  if (isDown) then
+    leftKey = true
+  else
+  	leftKey = false
+  end
+end)
+
+registerHotkey('arcade_rotate', 'Arcade rotate', function(isDown)
+  rotate()
+end)
+
+registerInput('arcade_down', 'Arcade down', function(isDown)
+  if (isDown) then
+    downKey = true
+  else
+  	downKey = false
+  end
+end)
+
+registerHotkey('arcade_Interact', 'Arcade Interact', function(isDown)
+	if (isDown) then
+		if looksAtArcade and (not gameRunning) then
+			if keypress == InteractKey then
+				spendMoney(10)
+				startGame()
+				gameRunning = true
+			end
+		end
+	end
+end)
+
 registerForEvent("onDraw", function()
-    CPS.Input:Register()
 
     if (looksAtArcade and not gameRunning) then
-
         CPS.setThemeBegin()
         CPS.styleBegin("WindowBorderSize", 0)
         CPS.colorBegin("WindowBg", {0,0,0,0.2})
-        ImGui.Begin("Arcade Machine", true, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoTitleBar)
+        ImGui.Begin("Arcade Machine", true, ImGuiWindowFlags.NoResize and ImGuiWindowFlags.AlwaysAutoResize and ImGuiWindowFlags.NoTitleBar)
         ImGui.SetWindowFontScale(1.5)
         ImGui.SetWindowPos((wWidth / 2) - 100, wHeight * 0.66)
         ImGui.Text("Arcade Machine")
         CPS.CPRect2("PopupSeparator", 230, 1, theme.Text)
         ImGui.Dummy(0,8)
         CPS.colorBegin("Text", theme.CPButtonText)
-        CPS.CPRect(InteractKey:upper(), 28, 28, theme.Hidden, theme.CPButtonText, 1, 3)
+        CPS.CPRect(GetBind("arcade_Interact"), 28, 28, theme.Hidden, theme.CPButtonText, 1, 3)
         ImGui.SameLine()
         ImGui.Text("Start Game")
         ImGui.SameLine()
@@ -323,7 +356,7 @@ registerForEvent("onDraw", function()
 
     if (gameRunning) then
         CPS.setThemeBegin()
-        ImGui.Begin("CyberTetris v.01", true, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoTitleBar)
+        ImGui.Begin("CyberTetris v.01", true, ImGuiWindowFlags.NoResize and ImGuiWindowFlags.AlwaysAutoResize and ImGuiWindowFlags.NoTitleBar)
         local tetrisWindowSize = {}
         local size = 20
         tetrisWindowSize.x, tetrisWindowSize.y = ImGui.GetWindowSize()
