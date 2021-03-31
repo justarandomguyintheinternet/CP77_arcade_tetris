@@ -1,50 +1,10 @@
-registerForEvent("onInit", function()
- 	CPS = require ("CPStyling")
- 	theme = CPS.theme
-    color = CPS.color
-    wWidth, wHeight = GetDisplayResolution()
-
-    looksAtArcade = false
-    currentMachine = nil
-    minDistance = 1.5
-    gameRunning = false
-    timer = 0
-    timer2 = 0
-
-    timerDelay = 0.75
-    timerMin = 0.15
-    timerStepPerLine = 0.05
-
-    brokenLines = 0
-    highscore = 0
-
-    downKey = false
-    rightKey = false
-    leftKey = false
-    rotateKey = false
-
-    modOn = false
-
-    tetrisField = {}
-    activeFigure = {}
-    activeFigureIndex = {}
-    fLength = {1, 3, 3, 3, 0, 3, 3}
-    figures = { [0] = {[0] = {1, 11, 21, 31, color.cyan, {x1_border = 0, x2_border = 9}}, [1] = {1, 2, 3, 4, color.cyan, {x1_border = 0, x2_border = 6}}},
-                [1] = {[0] = {1, 2, 11, 21, color.blue, {x1_border = 0, x2_border = 8}}, [1] = {10, 11, 12, 22, color.blue, {x1_border = 1, x2_border = 8}}, [2] = {1, 11, 21, 20, color.blue, {x1_border = 1, x2_border = 9}}, [3] = {0, 10, 11, 12, color.blue, {x1_border = 1, x2_border = 8}}},
-                [2] = {[0] = {1, 2, 12, 22, color.orange, {x1_border = 0, x2_border = 8}}, [1] = {11, 12, 13, 3, color.orange, {x1_border = 0, x2_border = 7}}, [2] = {2, 12, 22, 23, color.orange, {x1_border = -1, x2_border = 7}}, [3] = {11, 12, 13, 21, color.orange, {x1_border = 0, x2_border = 7}}},
-                [3] = {[0] = {1, 10, 11, 12, color.magenta, {x1_border = 1, x2_border = 8}}, [1] = {1, 11, 12, 21, color.magenta, {x1_border = 0, x2_border = 8}}, [2] = {10, 11, 12, 21, color.magenta, {x1_border = 1, x2_border = 8}}, [3] = {1, 10, 11, 21, color.magenta, {x1_border = 1, x2_border = 9}}},
-                [4] = {[0] = {1, 2, 11, 12, color.yellow, {x1_border = 0, x2_border = 8}}},
-                [5] = {[0] = {1, 2, 10, 11, color.lime, {x1_border = 1, x2_border = 8}}, [1] = {1, 11, 12, 22, color.lime, {x1_border = 0, x2_border = 8}}, [2] = {11, 12, 20, 21, color.lime, {x1_border = 1, x2_border = 8}}, [3] = {0, 10, 11, 21, color.lime, {x1_border = 1, x2_border = 9}}},
-                [6] = {[0] = {0, 1, 11, 12, color.red, {x1_border = 1, x2_border = 8}}, [1] = {2, 11, 12, 21, color.red, {x1_border = 0, x2_border = 8}}, [2] = {10, 11, 21, 22, color.red, {x1_border = 1, x2_border = 8}}, [3] = {1, 10, 11, 20, color.red, {x1_border = 1, x2_border = 9}}}
-            }
-
-    function distanceVectors(v1, v2)
+function distanceVectors(v1, v2)
         dV = (v1.x - v2.x)^2 + (v1.y - v2.y)^2 + (v1.z - v2.z)^2
         return math.sqrt(dV)
     end
 
     function isLookingAtArcade(range)
-        currentObj = Game.GetTargetingSystem():GetLookAtObject(player, true, false)
+        local currentObj = Game.GetTargetingSystem():GetLookAtObject(player, true, false)
         if currentObj ~= nil then
           if (currentObj:IsExactlyA("ArcadeMachine") and distanceVectors(player:GetWorldPosition(), currentObj:GetWorldPosition()) < range) then
               return true
@@ -249,7 +209,48 @@ registerForEvent("onInit", function()
         reset()
     end
 
--- End Tetris functions
+registerForEvent("onInit", function()
+ 	CPS = GetMod("CPStyling"):New()
+
+ 	color = CPS.color
+ 	theme = CPS.theme
+
+    wWidth, wHeight = GetDisplayResolution()
+
+    looksAtArcade = false
+
+    currentMachine = nil
+    minDistance = 1.5
+    gameRunning = false
+    timer = 0
+    timer2 = 0
+
+    timerDelay = 0.75
+    timerMin = 0.15
+    timerStepPerLine = 0.05
+
+    brokenLines = 0
+    highscore = 0
+
+    downKey = false
+    rightKey = false
+    leftKey = false
+    rotateKey = false
+
+    modOn = false
+
+    tetrisField = {}
+    activeFigure = {}
+    activeFigureIndex = {}
+    fLength = {1, 3, 3, 3, 0, 3, 3}
+    figures = { [0] = {[0] = {1, 11, 21, 31, color.cyan, {x1_border = 0, x2_border = 9}}, [1] = {1, 2, 3, 4, color.cyan, {x1_border = 0, x2_border = 6}}},
+                [1] = {[0] = {1, 2, 11, 21, color.blue, {x1_border = 0, x2_border = 8}}, [1] = {10, 11, 12, 22, color.blue, {x1_border = 1, x2_border = 8}}, [2] = {1, 11, 21, 20, color.blue, {x1_border = 1, x2_border = 9}}, [3] = {0, 10, 11, 12, color.blue, {x1_border = 1, x2_border = 8}}},
+                [2] = {[0] = {1, 2, 12, 22, color.orange, {x1_border = 0, x2_border = 8}}, [1] = {11, 12, 13, 3, color.orange, {x1_border = 0, x2_border = 7}}, [2] = {2, 12, 22, 23, color.orange, {x1_border = -1, x2_border = 7}}, [3] = {11, 12, 13, 21, color.orange, {x1_border = 0, x2_border = 7}}},
+                [3] = {[0] = {1, 10, 11, 12, color.magenta, {x1_border = 1, x2_border = 8}}, [1] = {1, 11, 12, 21, color.magenta, {x1_border = 0, x2_border = 8}}, [2] = {10, 11, 12, 21, color.magenta, {x1_border = 1, x2_border = 8}}, [3] = {1, 10, 11, 21, color.magenta, {x1_border = 1, x2_border = 9}}},
+                [4] = {[0] = {1, 2, 11, 12, color.yellow, {x1_border = 0, x2_border = 8}}},
+                [5] = {[0] = {1, 2, 10, 11, color.lime, {x1_border = 1, x2_border = 8}}, [1] = {1, 11, 12, 22, color.lime, {x1_border = 0, x2_border = 8}}, [2] = {11, 12, 20, 21, color.lime, {x1_border = 1, x2_border = 8}}, [3] = {0, 10, 11, 21, color.lime, {x1_border = 1, x2_border = 9}}},
+                [6] = {[0] = {0, 1, 11, 12, color.red, {x1_border = 1, x2_border = 8}}, [1] = {2, 11, 12, 21, color.red, {x1_border = 0, x2_border = 8}}, [2] = {10, 11, 21, 22, color.red, {x1_border = 1, x2_border = 8}}, [3] = {1, 10, 11, 20, color.red, {x1_border = 1, x2_border = 9}}}
+            }
 end)
 
 registerForEvent("onUpdate", function(deltaTime)
@@ -332,17 +333,17 @@ end)
 registerForEvent("onDraw", function()
 
     if (looksAtArcade and not gameRunning) then
-        CPS.setThemeBegin()
+        CPS:setThemeBegin()
         CPS.styleBegin("WindowBorderSize", 0)
         CPS.colorBegin("WindowBg", {0,0,0,0.2})
         ImGui.Begin("Arcade Machine", true, ImGuiWindowFlags.NoResize and ImGuiWindowFlags.AlwaysAutoResize and ImGuiWindowFlags.NoTitleBar)
         ImGui.SetWindowFontScale(1.5)
         ImGui.SetWindowPos((wWidth / 2) - 100, wHeight * 0.66)
         ImGui.Text("Arcade Machine")
-        CPS.CPRect2("PopupSeparator", 230, 1, theme.Text)
+        CPS:CPRect2("PopupSeparator", 230, 1, theme.Text)
         ImGui.Dummy(0,8)
         CPS.colorBegin("Text", theme.CPButtonText)
-        CPS.CPRect(GetBind("arcade_Interact"), 28, 28, theme.Hidden, theme.CPButtonText, 1, 3)
+        CPS:CPRect(GetBind("arcade_Interact"), 28, 28, theme.Hidden, theme.CPButtonText, 1, 3)
         ImGui.SameLine()
         ImGui.Text("Start Game")
         ImGui.SameLine()
@@ -351,11 +352,11 @@ registerForEvent("onDraw", function()
         ImGui.End()
         CPS.colorEnd(1)
         CPS.styleEnd(1)
-        CPS.setThemeEnd()
+        CPS:setThemeEnd()
     end
 
     if (gameRunning) then
-        CPS.setThemeBegin()
+        CPS:setThemeBegin()
         ImGui.Begin("CyberTetris v.01", true, ImGuiWindowFlags.NoResize and ImGuiWindowFlags.AlwaysAutoResize and ImGuiWindowFlags.NoTitleBar)
         local tetrisWindowSize = {}
         local size = 20
@@ -370,7 +371,7 @@ registerForEvent("onDraw", function()
         ImGui.SameLine(87)
         h = string.format ("Highscore: %i", highscore)
         ImGui.Text(h)
-        ImGui.EndChild()
+        ImGui:EndChild()
 
         drawField(size)
 
